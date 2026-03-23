@@ -4,5 +4,4 @@ dist/
 uploads/
 .env
 
-/src/generated/prisma
 prisma/migrations/migration_lock.toml
