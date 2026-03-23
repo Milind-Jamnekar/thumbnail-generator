@@ -1,0 +1,26 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Video {
+  id          String      @id @default(uuid())
+  title       String
+  description String?
+  tags        String?
+  fileUrl     String
+  createdAt   DateTime    @default(now())
+  thumbnails  Thumbnail[]
+}
+
+model Thumbnail {
+  id        String  @id @default(uuid())
+  videoId   String
+  url       String
+  isPrimary Boolean @default(false)
+  video     Video   @relation(fields: [videoId], references: [id])
+}
