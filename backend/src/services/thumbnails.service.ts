@@ -1,7 +1,12 @@
 import ffmpeg from 'fluent-ffmpeg';
+import ffmpegStatic from 'ffmpeg-static';
+import ffprobeInstaller from '@ffprobe-installer/ffprobe';
 import path from 'path';
 import fs from 'fs';
 import prisma from '../db';
+
+ffmpeg.setFfmpegPath(ffmpegStatic!);
+ffmpeg.setFfprobePath(ffprobeInstaller.path);
 
 const THUMBNAIL_COUNT = 5;
 

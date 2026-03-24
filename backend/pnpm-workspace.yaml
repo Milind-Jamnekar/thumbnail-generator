@@ -1,0 +1,6 @@
+allowBuilds:
+  '@ffprobe-installer/darwin-arm64': true
+  '@prisma/client': true
+  '@prisma/engines': true
+  ffmpeg-static: true
+  prisma: true
