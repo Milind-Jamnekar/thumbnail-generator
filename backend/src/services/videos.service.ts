@@ -1,4 +1,4 @@
-import prisma from '../db';
+import prisma from "../db";
 
 export async function createVideo(data: {
   title: string;
@@ -21,7 +21,7 @@ export async function getVideos(search?: string, tag?: string) {
         take: 1,
       },
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
   });
 }
 
