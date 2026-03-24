@@ -7,6 +7,7 @@ import {
   listVideos,
   getVideo,
 } from "../controllers/videos.controller";
+import { generate, select } from "../controllers/thumbnails.controller";
 
 const uploadsDir = path.join(__dirname, "../../uploads/videos");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
@@ -32,5 +33,7 @@ const router = Router();
 router.post("/", upload.single("video"), uploadVideo);
 router.get("/", listVideos);
 router.get("/:id", getVideo);
+router.post("/:id/thumbnails/generate", generate);
+router.post("/:id/thumbnails/select", select);
 
 export default router;
