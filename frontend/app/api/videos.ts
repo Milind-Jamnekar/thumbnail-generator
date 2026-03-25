@@ -1,4 +1,8 @@
-const BASE = import.meta.env.VITE_API_BASE_URL;
+// Server-side (loaders/actions) uses API_BASE_URL env var (direct localhost call)
+// Client-side (browser) uses VITE_API_BASE_URL baked in at build time
+const BASE = typeof process !== "undefined" && process.env?.API_BASE_URL
+  ? process.env.API_BASE_URL
+  : import.meta.env.VITE_API_BASE_URL;
 
 export interface Video {
   id: string;
