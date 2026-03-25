@@ -3,8 +3,6 @@ import { Card, CardContent } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import type { Video } from "~/api/videos";
 
-const BASE = "http://localhost:3000";
-
 export function VideoCard({ video }: { video: Video }) {
   const primary = video.thumbnails?.[0];
   const tags = video.tags?.split(",").map((t) => t.trim()).filter(Boolean) ?? [];
@@ -14,7 +12,7 @@ export function VideoCard({ video }: { video: Video }) {
       <Card className="overflow-hidden hover:shadow-lg transition-shadow group cursor-pointer h-full">
         {primary ? (
           <img
-            src={`${BASE}${primary.url}`}
+            src={primary.url}
             alt={video.title}
             className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-300"
           />

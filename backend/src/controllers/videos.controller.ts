@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
-import {
-  createVideo,
-  getVideos,
-  getVideoById,
-} from "../services/videos.service";
+import { createVideo, getVideos, getVideoById } from "../services/videos.service";
+import { uploadBuffer } from "../lib/storage";
+import path from "path";
 
 export async function uploadVideo(req: Request, res: Response) {
   const file = req.file;
@@ -18,14 +16,16 @@ export async function uploadVideo(req: Request, res: Response) {
     return;
   }
 
-  const fileUrl = `/uploads/videos/${file.filename}`;
+  const ext = path.extname(file.originalname);
+  const key = `videos/${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+  const fileUrl = await uploadBuffer(key, file.buffer, file.mimetype);
+
   const video = await createVideo({ title, description, tags, fileUrl });
   res.status(201).json(video);
 }
 
 export async function listVideos(req: Request, res: Response) {
-  const search =
-    typeof req.query.search === "string" ? req.query.search : undefined;
+  const search = typeof req.query.search === "string" ? req.query.search : undefined;
   const tag = typeof req.query.tag === "string" ? req.query.tag : undefined;
   const videos = await getVideos(search, tag);
   res.json(videos);

@@ -3,7 +3,9 @@ import ffmpegStatic from 'ffmpeg-static';
 import ffprobeInstaller from '@ffprobe-installer/ffprobe';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import prisma from '../db';
+import { uploadFile, downloadToFile } from '../lib/storage';
 
 ffmpeg.setFfmpegPath(ffmpegStatic!);
 ffmpeg.setFfprobePath(ffprobeInstaller.path);
@@ -37,32 +39,33 @@ export async function generateThumbnails(videoId: string) {
   const video = await prisma.video.findUnique({ where: { id: videoId } });
   if (!video) throw new Error('Video not found');
 
-  const videoPath = path.join(__dirname, '../../', video.fileUrl);
-  if (!fs.existsSync(videoPath)) throw new Error('Video file not found on disk');
+  // Download video from MinIO to a temp file so ffmpeg can read it
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'thumbgen-'));
+  const tmpVideo = path.join(tmpDir, `video${path.extname(video.fileUrl.split('?')[0])}`);
 
-  const thumbnailsDir = path.join(__dirname, '../../uploads/thumbnails');
-  if (!fs.existsSync(thumbnailsDir)) fs.mkdirSync(thumbnailsDir, { recursive: true });
+  await downloadToFile(video.fileUrl, tmpVideo);
 
-  const duration = await getVideoDuration(videoPath);
+  const duration = await getVideoDuration(tmpVideo);
   const interval = duration / (THUMBNAIL_COUNT + 1);
 
   const created = [];
   for (let i = 1; i <= THUMBNAIL_COUNT; i++) {
     const timestamp = interval * i;
     const filename = `${videoId}-thumb-${i}.jpg`;
-    const outputPath = path.join(thumbnailsDir, filename);
+    const tmpOutput = path.join(tmpDir, filename);
 
-    await extractFrame(videoPath, outputPath, timestamp);
+    await extractFrame(tmpVideo, tmpOutput, timestamp);
+
+    const url = await uploadFile(`thumbnails/${filename}`, tmpOutput, 'image/jpeg');
 
     const thumbnail = await prisma.thumbnail.create({
-      data: {
-        videoId,
-        url: `/uploads/thumbnails/${filename}`,
-        isPrimary: i === 1,
-      },
+      data: { videoId, url, isPrimary: i === 1 },
     });
     created.push(thumbnail);
   }
+
+  // Clean up temp files
+  fs.rmSync(tmpDir, { recursive: true, force: true });
 
   return created;
 }

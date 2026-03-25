@@ -7,7 +7,7 @@ import {
   useNavigation,
 } from "react-router";
 import type { Thumbnail } from "~/api/videos";
-import { generateThumbnails, uploadVideo } from "~/api/videos";
+import { generateThumbnails, uploadVideo, selectThumbnail } from "~/api/videos";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
@@ -22,11 +22,7 @@ export async function action({ request }: Route.ActionArgs) {
   if (intent === "select") {
     const videoId = formData.get("videoId") as string;
     const thumbnailId = formData.get("thumbnailId") as string;
-    await fetch(`http://localhost:3000/videos/${videoId}/thumbnails/select`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ thumbnailId }),
-    });
+    await selectThumbnail(videoId, thumbnailId);
     return redirect(`/videos/${videoId}`);
   }
 
@@ -164,7 +160,7 @@ export default function Upload() {
                       : "border-transparent"
                   }`}
                 >
-                  <ThumbnailImage src={`http://localhost:3000${thumb.url}`} />
+                  <ThumbnailImage src={thumb.url} />
                 </button>
               ))}
             </div>

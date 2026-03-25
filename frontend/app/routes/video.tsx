@@ -9,8 +9,6 @@ import { ScrollArea } from "~/components/ui/scroll-area";
 import { getVideo, selectThumbnail } from "~/api/videos";
 import type { Route } from "./+types/video";
 
-const BASE = "http://localhost:3000";
-
 export async function loader({ params }: Route.LoaderArgs) {
   const video = await getVideo(params.id!);
   return { video };
@@ -80,7 +78,6 @@ export default function VideoDetail() {
   const { video } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
 
-  // Optimistic selected thumbnail from in-flight fetcher
   const optimisticSelectedId = fetcher.formData?.get("thumbnailId") as string | undefined;
   const selectedId = optimisticSelectedId ?? video.thumbnails.find((t) => t.isPrimary)?.id ?? video.thumbnails[0]?.id;
 
@@ -101,8 +98,8 @@ export default function VideoDetail() {
         <div className="lg:col-span-2 space-y-4">
           <Card className="overflow-hidden">
             <VideoPlayer
-              src={`${BASE}${video.fileUrl}`}
-              poster={primaryThumb ? `${BASE}${primaryThumb.url}` : undefined}
+              src={video.fileUrl}
+              poster={primaryThumb?.url}
             />
           </Card>
 
@@ -159,7 +156,7 @@ export default function VideoDetail() {
                                 : "border-transparent hover:border-muted-foreground/30"
                             } ${isPending ? "opacity-75" : ""}`}
                           >
-                            <ThumbnailImage src={`${BASE}${thumb.url}`} />
+                            <ThumbnailImage src={thumb.url} />
                             {isSelected && (
                               <p className="text-xs text-center py-1 bg-primary text-primary-foreground font-medium">
                                 {isPending ? "Saving..." : "Primary"}
