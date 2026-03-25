@@ -38,6 +38,6 @@ jobs:
             pnpm run build
 
             # Restart processes
-            pm2 restart thumbnail-backend
-            pm2 restart thumbnail-frontend
+            pm2 restart thumbnail-backend --update-env
+            pm2 restart thumbnail-frontend --update-env
             pm2 save
