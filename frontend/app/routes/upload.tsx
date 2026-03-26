@@ -6,6 +6,15 @@ import {
   useFetcher,
   useNavigation,
 } from "react-router";
+import type { MetaFunction } from "react-router";
+
+export const meta: MetaFunction = () => [
+  { title: "Upload Video | Thumbnail Generator" },
+  {
+    name: "description",
+    content: "Upload a video and generate thumbnails automatically.",
+  },
+];
 import type { Thumbnail } from "~/api/videos";
 import { generateThumbnails, uploadVideo, selectThumbnail } from "~/api/videos";
 import { Button } from "~/components/ui/button";
@@ -70,7 +79,7 @@ export default function Upload() {
   const activeSelectedId = optimisticSelectedId ?? selectedId;
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <main className="max-w-2xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Upload Video</h1>
 
       {/* Step 1 — Upload form */}
@@ -149,11 +158,13 @@ export default function Upload() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-3 gap-3">
-              {actionData.thumbnails.map((thumb) => (
+              {actionData.thumbnails.map((thumb, i) => (
                 <button
                   key={thumb.id}
                   disabled={isSelecting}
                   onClick={() => setSelectedId(thumb.id)}
+                  aria-label={`Select thumbnail ${i + 1}`}
+                  aria-pressed={activeSelectedId === thumb.id}
                   className={`rounded overflow-hidden border-2 transition-colors disabled:opacity-60 ${
                     activeSelectedId === thumb.id
                       ? "border-primary"
@@ -183,6 +194,6 @@ export default function Upload() {
           </CardContent>
         </Card>
       )}
-    </div>
+    </main>
   );
 }

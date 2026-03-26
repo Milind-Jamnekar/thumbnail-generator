@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useFetcher, useLoaderData } from "react-router";
+import type { MetaFunction } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -8,6 +9,11 @@ import { buttonVariants } from "~/components/ui/button";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { getVideo, selectThumbnail } from "~/api/videos";
 import type { Route } from "./+types/video";
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => [
+  { title: data ? `${data.video.title} | Thumbnail Generator` : "Video | Thumbnail Generator" },
+  { name: "description", content: data?.video.description ?? "Watch and manage your video." },
+];
 
 export async function loader({ params }: Route.LoaderArgs) {
   const video = await getVideo(params.id!);
@@ -62,7 +68,7 @@ function ThumbnailImage({ src }: { src: string }) {
 
 export function HydrateFallback() {
   return (
-    <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
+    <main className="max-w-5xl mx-auto px-6 py-8 space-y-6">
       <Skeleton className="h-8 w-48" />
       <Skeleton className="aspect-video w-full rounded-xl" />
       <div className="space-y-2">
@@ -70,7 +76,7 @@ export function HydrateFallback() {
         <Skeleton className="h-4 w-full" />
         <Skeleton className="h-4 w-3/4" />
       </div>
-    </div>
+    </main>
   );
 }
 
@@ -85,7 +91,7 @@ export default function VideoDetail() {
   const primaryThumb = video.thumbnails.find((t) => t.isPrimary);
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-8">
+    <main className="max-w-5xl mx-auto px-6 py-8">
       <Link
         to="/"
         className={buttonVariants({ variant: "ghost", size: "sm" }) + " mb-4 inline-flex"}
@@ -142,7 +148,7 @@ export default function VideoDetail() {
               ) : (
                 <ScrollArea className="h-[420px] pr-2">
                   <div className="space-y-3">
-                    {video.thumbnails.map((thumb) => {
+                    {video.thumbnails.map((thumb, i) => {
                       const isSelected = thumb.id === selectedId;
                       const isPending = fetcher.state === "submitting" && optimisticSelectedId === thumb.id;
                       return (
@@ -150,6 +156,8 @@ export default function VideoDetail() {
                           <input type="hidden" name="thumbnailId" value={thumb.id} />
                           <button
                             type="submit"
+                            aria-label={`Set thumbnail ${i + 1} as primary`}
+                            aria-pressed={isSelected}
                             className={`w-full rounded-lg overflow-hidden border-2 transition-all ${
                               isSelected
                                 ? "border-primary shadow-md"
@@ -173,6 +181,6 @@ export default function VideoDetail() {
           </Card>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

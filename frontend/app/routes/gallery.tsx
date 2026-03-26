@@ -1,5 +1,16 @@
 import { useRef, useState } from "react";
-import { Link, useLoaderData, useNavigation, useSearchParams } from "react-router";
+import {
+  Link,
+  useLoaderData,
+  useNavigation,
+  useSearchParams,
+} from "react-router";
+import type { MetaFunction } from "react-router";
+
+export const meta: MetaFunction = () => [
+  { title: "Video Gallery | Thumbnail Generator" },
+  { name: "description", content: "Browse and manage your uploaded videos." },
+];
 import { Input } from "~/components/ui/input";
 import { buttonVariants } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -30,9 +41,13 @@ export async function loader({ request }: Route.LoaderArgs) {
   const allTags = Array.from(
     new Set(
       allVideos.flatMap(
-        (v) => v.tags?.split(",").map((t) => t.trim()).filter(Boolean) ?? []
-      )
-    )
+        (v) =>
+          v.tags
+            ?.split(",")
+            .map((t) => t.trim())
+            .filter(Boolean) ?? [],
+      ),
+    ),
   );
 
   return { videos, allTags, search, tag };
@@ -84,7 +99,7 @@ export default function Gallery() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8">
+    <main className="max-w-6xl mx-auto px-6 py-8">
       <div className="flex items-center justify-between mb-2">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Video Gallery</h1>
@@ -113,7 +128,9 @@ export default function Gallery() {
           <SelectContent>
             <SelectItem value="">All tags</SelectItem>
             {allTags.map((t) => (
-              <SelectItem key={t} value={t}>{t}</SelectItem>
+              <SelectItem key={t} value={t}>
+                {t}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -121,7 +138,9 @@ export default function Gallery() {
 
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-          {Array.from({ length: 6 }).map((_, i) => <VideoCardSkeleton key={i} />)}
+          {Array.from({ length: 6 }).map((_, i) => (
+            <VideoCardSkeleton key={i} />
+          ))}
         </div>
       ) : videos.length === 0 ? (
         <Card>
@@ -134,9 +153,11 @@ export default function Gallery() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-          {videos.map((video) => <VideoCard key={video.id} video={video} />)}
+          {videos.map((video) => (
+            <VideoCard key={video.id} video={video} />
+          ))}
         </div>
       )}
-    </div>
+    </main>
   );
 }

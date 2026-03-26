@@ -10,6 +10,16 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 
+export function meta() {
+  return [
+    { title: "Thumbnail Generator" },
+    {
+      name: "description",
+      content: "Upload videos and automatically generate thumbnails.",
+    },
+  ];
+}
+
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
