@@ -122,7 +122,7 @@ export default function Gallery() {
           className="max-w-xs"
         />
         <Select value={tag} onValueChange={handleTagChange}>
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-40" aria-label="Filter by tag">
             <SelectValue placeholder="All tags" />
           </SelectTrigger>
           <SelectContent>
