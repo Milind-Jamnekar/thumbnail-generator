@@ -33,7 +33,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const tag = url.searchParams.get("tag") ?? "";
 
   const [result, allResult] = await Promise.all([
-    listVideos(search || undefined, tag || undefined, 1, 2).catch(() => ({
+    listVideos(search || undefined, tag || undefined, 1, 9).catch(() => ({
       videos: [],
       hasMore: false,
     })),
@@ -135,7 +135,7 @@ export default function Gallery() {
             search || undefined,
             tag || undefined,
             page,
-            5,
+            9,
           );
           setAllVideos((prev) => [...prev, ...result.videos]);
           setHasMore(result.hasMore);
