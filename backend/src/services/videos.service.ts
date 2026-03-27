@@ -12,8 +12,8 @@ export async function createVideo(data: {
 export async function getVideos(search?: string, tag?: string) {
   return prisma.video.findMany({
     where: {
-      ...(search ? { title: { contains: search } } : {}),
-      ...(tag ? { tags: { contains: tag } } : {}),
+      ...(search ? { title: { contains: search, mode: "insensitive" } } : {}),
+      ...(tag ? { tags: { contains: tag, mode: "insensitive" } } : {}),
     },
     include: {
       thumbnails: {
