@@ -1,21 +1,15 @@
 import { useRef, useState } from "react";
+import type { MetaFunction } from "react-router";
 import {
   Link,
   useLoaderData,
   useNavigation,
   useSearchParams,
 } from "react-router";
-import type { MetaFunction } from "react-router";
-
-export const meta: MetaFunction = () => [
-  { title: "Video Gallery | Thumbnail Generator" },
-  { name: "description", content: "Browse and manage your uploaded videos." },
-];
-import { Input } from "~/components/ui/input";
+import { listVideos } from "~/api/videos";
 import { buttonVariants } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import { Skeleton } from "~/components/ui/skeleton";
-import { Separator } from "~/components/ui/separator";
+import { Input } from "~/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -23,9 +17,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { listVideos } from "~/api/videos";
+import { Separator } from "~/components/ui/separator";
+import { Skeleton } from "~/components/ui/skeleton";
 import { VideoCard } from "~/components/VideoCard";
 import type { Route } from "./+types/gallery";
+
+export const meta: MetaFunction = () => [
+  { title: "Video Gallery | Thumbnail Generator" },
+  { name: "description", content: "Browse and manage your uploaded videos." },
+];
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
@@ -34,8 +34,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   // Filtered videos from backend + all videos just for tag list
   const [videos, allVideos] = await Promise.all([
-    listVideos(search || undefined, tag || undefined),
-    listVideos(),
+    listVideos(search || undefined, tag || undefined).catch(() => []),
+    listVideos().catch(() => []),
   ]);
 
   const allTags = Array.from(
