@@ -1,8 +1,9 @@
 // Server-side (loaders/actions) uses API_BASE_URL env var (direct localhost call)
 // Client-side (browser) uses VITE_API_BASE_URL baked in at build time
-const BASE = typeof process !== "undefined" && process.env?.API_BASE_URL
-  ? process.env.API_BASE_URL
-  : import.meta.env.VITE_API_BASE_URL;
+const BASE =
+  typeof process !== "undefined" && process.env?.API_BASE_URL
+    ? process.env.API_BASE_URL
+    : import.meta.env.VITE_API_BASE_URL;
 
 export interface Video {
   id: string;
@@ -22,38 +23,52 @@ export interface Thumbnail {
 }
 
 export async function uploadVideo(formData: FormData): Promise<Video> {
-  const res = await fetch(`${BASE}/videos`, { method: 'POST', body: formData });
-  if (!res.ok) throw new Error('Upload failed');
+  const res = await fetch(`${BASE}/videos`, { method: "POST", body: formData });
+  if (!res.ok) throw new Error("Upload failed");
   return res.json();
 }
 
-export async function generateThumbnails(videoId: string): Promise<Thumbnail[]> {
-  const res = await fetch(`${BASE}/videos/${videoId}/thumbnails/generate`, { method: 'POST' });
-  if (!res.ok) throw new Error('Thumbnail generation failed');
+export async function generateThumbnails(
+  videoId: string,
+): Promise<Thumbnail[]> {
+  const res = await fetch(`${BASE}/videos/${videoId}/thumbnails/generate`, {
+    method: "POST",
+  });
+  if (!res.ok) throw new Error("Thumbnail generation failed");
   return res.json();
 }
 
-export async function selectThumbnail(videoId: string, thumbnailId: string): Promise<Thumbnail> {
+export async function selectThumbnail(
+  videoId: string,
+  thumbnailId: string,
+): Promise<Thumbnail> {
   const res = await fetch(`${BASE}/videos/${videoId}/thumbnails/select`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ thumbnailId }),
   });
-  if (!res.ok) throw new Error('Select failed');
+  if (!res.ok) throw new Error("Select failed");
   return res.json();
 }
 
-export async function listVideos(search?: string, tag?: string): Promise<Video[]> {
+export async function listVideos(
+  search?: string,
+  tag?: string,
+  page?: number,
+  limit?: number,
+): Promise<{ videos: Video[]; hasMore: boolean }> {
   const params = new URLSearchParams();
-  if (search) params.set('search', search);
-  if (tag) params.set('tag', tag);
+  if (search) params.set("search", search);
+  if (tag) params.set("tag", tag);
+  if (page !== undefined) params.set("page", String(page));
+  if (limit !== undefined) params.set("limit", String(limit));
   const res = await fetch(`${BASE}/videos?${params}`);
-  if (!res.ok) throw new Error('Failed to fetch videos');
+  if (!res.ok) throw new Error("Failed to fetch videos");
   return res.json();
 }
 
 export async function getVideo(id: string): Promise<Video> {
   const res = await fetch(`${BASE}/videos/${id}`);
-  if (!res.ok) throw new Error('Video not found');
+  if (!res.ok) throw new Error("Video not found");
   return res.json();
 }

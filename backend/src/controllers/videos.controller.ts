@@ -27,8 +27,10 @@ export async function uploadVideo(req: Request, res: Response) {
 export async function listVideos(req: Request, res: Response) {
   const search = typeof req.query.search === "string" ? req.query.search : undefined;
   const tag = typeof req.query.tag === "string" ? req.query.tag : undefined;
-  const videos = await getVideos(search, tag);
-  res.json(videos);
+  const page = typeof req.query.page === "string" ? parseInt(req.query.page) || undefined : undefined;
+  const limit = typeof req.query.limit === "string" ? parseInt(req.query.limit) || undefined : undefined;
+  const result = await getVideos(search, tag, page, limit);
+  res.json(result);
 }
 
 export async function getVideo(req: Request<{ id: string }>, res: Response) {

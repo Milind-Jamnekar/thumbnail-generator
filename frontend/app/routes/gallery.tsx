@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { MetaFunction } from "react-router";
 import {
   Link,
@@ -32,15 +32,20 @@ export async function loader({ request }: Route.LoaderArgs) {
   const search = url.searchParams.get("search") ?? "";
   const tag = url.searchParams.get("tag") ?? "";
 
-  // Filtered videos from backend + all videos just for tag list
-  const [videos, allVideos] = await Promise.all([
-    listVideos(search || undefined, tag || undefined).catch(() => []),
-    listVideos().catch(() => []),
+  const [result, allResult] = await Promise.all([
+    listVideos(search || undefined, tag || undefined, 1, 2).catch(() => ({
+      videos: [],
+      hasMore: false,
+    })),
+    listVideos(undefined, undefined, 1, 1000).catch(() => ({
+      videos: [],
+      hasMore: false,
+    })),
   ]);
 
   const allTags = Array.from(
     new Set(
-      allVideos.flatMap(
+      allResult.videos.flatMap(
         (v) =>
           v.tags
             ?.split(",")
@@ -50,7 +55,13 @@ export async function loader({ request }: Route.LoaderArgs) {
     ),
   );
 
-  return { videos, allTags, search, tag };
+  return {
+    videos: result.videos,
+    hasMore: result.hasMore,
+    allTags,
+    search,
+    tag,
+  };
 }
 
 function VideoCardSkeleton() {
@@ -70,13 +81,75 @@ function VideoCardSkeleton() {
 }
 
 export default function Gallery() {
-  const { videos, allTags, search, tag } = useLoaderData<typeof loader>();
+  const {
+    videos: initialVideos,
+    hasMore: initialHasMore,
+    allTags,
+    search,
+    tag,
+  } = useLoaderData<typeof loader>();
   const [, setSearchParams] = useSearchParams();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
 
+  const [allVideos, setAllVideos] = useState(initialVideos);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [page, setPage] = useState(2);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [searchInput, setSearchInput] = useState(search);
+
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isLoadingRef = useRef(false);
+
+  // Always keep latest values accessible inside the observer
+  const stateRef = useRef({ hasMore, page, search, tag });
+  stateRef.current = { hasMore, page, search, tag };
+
+  // Reset when search/tag changes
+  useEffect(() => {
+    setAllVideos(initialVideos);
+    setHasMore(initialHasMore);
+    setPage(2);
+  }, [initialVideos, initialHasMore]);
+
+  // Infinite scroll observer — runs once
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      async ([entry]) => {
+        if (
+          !entry.isIntersecting ||
+          isLoadingRef.current ||
+          !stateRef.current.hasMore
+        )
+          return;
+
+        isLoadingRef.current = true;
+        setIsLoadingMore(true);
+        try {
+          const { page, search, tag } = stateRef.current;
+          const result = await listVideos(
+            search || undefined,
+            tag || undefined,
+            page,
+            5,
+          );
+          setAllVideos((prev) => [...prev, ...result.videos]);
+          setHasMore(result.hasMore);
+          setPage((prev) => prev + 1);
+        } catch {}
+        isLoadingRef.current = false;
+        setIsLoadingMore(false);
+      },
+      { rootMargin: "200px" },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
     setSearchInput(e.target.value);
@@ -142,7 +215,7 @@ export default function Gallery() {
             <VideoCardSkeleton key={i} />
           ))}
         </div>
-      ) : videos.length === 0 ? (
+      ) : allVideos.length === 0 ? (
         <Card>
           <CardContent className="py-20 text-center text-muted-foreground">
             <p className="text-lg font-medium">No videos found</p>
@@ -152,11 +225,21 @@ export default function Gallery() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-          {videos.map((video) => (
-            <VideoCard key={video.id} video={video} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+            {allVideos.map((video) => (
+              <VideoCard key={video.id} video={video} />
+            ))}
+          </div>
+          {isLoadingMore && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 mt-5">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <VideoCardSkeleton key={i} />
+              ))}
+            </div>
+          )}
+          <div ref={sentinelRef} className="h-4" />
+        </>
       )}
     </main>
   );
